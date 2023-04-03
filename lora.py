@@ -53,15 +53,15 @@ if __name__ == '__main__':
     global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes)
     global_model.to(device)
 
-    w_init = global_model.state_dict()
-    for k, v in w_init.items():
-        print(k, v.shape)
-    input()
+    # w_init = global_model.state_dict()
+    # for k, v in w_init.items():
+    #     print(k, v.shape)
+    # input()
 
-    w_init = lora.lora_state_dict(global_model)
-    for k, v in w_init.items():
-        print(k, v.shape)
-    input()
+    # w_init = lora.lora_state_dict(global_model)
+    # for k, v in w_init.items():
+    #     print(k, v.shape)
+    # input()
     
     global_model.train()
     
