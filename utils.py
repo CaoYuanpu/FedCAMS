@@ -51,8 +51,8 @@ def get_model(model_name, dataset, img_size, nclass):
         len_in = 1
         for x in img_size:
             len_in *= x
-            model = simple.MLP(dim_in=len_in, dim_hidden=64,
-                               dim_out=nclass)
+        model = simple.MLP(dim_in=len_in, dim_hidden=64,
+                            dim_out=nclass)
     else:
         exit('Error: unrecognized model')
 
