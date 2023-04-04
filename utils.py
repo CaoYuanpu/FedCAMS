@@ -176,6 +176,32 @@ def average_weights(w):
         w_avg[key] = torch.div(w_avg[key], len(w))
     return w_avg
 
+def average_weights_lora(w):
+    """
+    Returns the average of the weights.
+    """
+    for w_i in w:
+        for k in w_i.keys():
+            if 'lora_A' in k:
+                prefix = k.split('.')[0]
+                w_ba = w_i[prefix+'.lora_B'] @ w_i[prefix+'.lora_A'] / 8
+                w_i[prefix+'.weight'] += w_ba
+
+    lora_k = []
+    for k in w[0].keys():
+        if 'lora' in k:
+            lora_k.append(k)
+
+    w_avg = copy.deepcopy(w[0])
+    
+    for k in lora_k:
+        del w_avg[k]
+
+    for key in w_avg.keys():
+        for i in range(1, len(w)):
+            w_avg[key] += w[i][key]
+        w_avg[key] = torch.div(w_avg[key], len(w))
+    return w_avg
 
 def average_parameter_delta(ws, w0):
     w_avg = copy.deepcopy(ws[0])

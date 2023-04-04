@@ -4,15 +4,19 @@
 
 from torch import nn
 import torch.nn.functional as F
+import loralib as lora
 
 
 class MLP(nn.Module):
     def __init__(self, dim_in, dim_hidden, dim_out):
         super(MLP, self).__init__()
-        self.layer_input = nn.Linear(dim_in, dim_hidden)
+        # self.layer_input = nn.Linear(dim_in, dim_hidden)
+        self.layer_input = lora.Linear(dim_in, dim_hidden, r=8)
+        
         self.relu = nn.ReLU()
         # self.dropout = nn.Dropout()
-        self.layer_hidden = nn.Linear(dim_hidden, dim_out)
+        # self.layer_hidden = nn.Linear(dim_hidden, dim_out)
+        self.layer_hidden = lora.Linear(dim_hidden, dim_out, r=8)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):

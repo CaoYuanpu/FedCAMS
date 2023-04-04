@@ -77,6 +77,7 @@ class LocalUpdate(object):
         epoch_loss = []
 
         optimizer = torch.optim.SGD(model.parameters(), lr=self.args.local_lr, momentum=0)
+        # optimizer = torch.optim.Adam(model.parameters(), lr=self.args.local_lr)
 
         for iter in range(self.args.local_ep):
             batch_loss = []
@@ -87,6 +88,13 @@ class LocalUpdate(object):
                 model.zero_grad()
                 logits = model(images)
                 loss = self.criterion(logits, labels)
+                # for n, p in model.named_parameters():
+                #     if 'lora' in n:
+                #         print(n, p.shape, p.requires_grad)
+                #         print(p)
+                #         print()
+                # print(loss)
+                # input()
                 loss.backward()
                 optimizer.step()
 

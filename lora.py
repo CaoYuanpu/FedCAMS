@@ -17,7 +17,7 @@ from tensorboardX import SummaryWriter
 
 from options import args_parser
 from update import LocalUpdate, update_model_inplace, test_inference
-from utils import get_model, get_dataset, average_weights, exp_details, average_parameter_delta
+from utils import get_model, get_dataset, average_weights_lora, exp_details, average_parameter_delta
 import loralib as lora
 
 if __name__ == '__main__':
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # define paths
 #     out_dir_name = args.model + args.dataset + args.optimizer + '_lr' + str(args.lr) + '_locallr' + str(args.local_lr) + '_localep' + str(args.local_ep) +'_localbs' + str(args.local_bs) + '_eps' + str(args.eps)
-    file_name = '/{}_{}_{}_llr[{}]_glr[{}]_eps[{}]_le[{}]_bs[{}]_iid[{}]_mi[{}]_frac[{}].pkl'.\
+    file_name = '/{}_{}_{}_llr[{}]_glr[{}]_eps[{}]_le[{}]_bs[{}]_iid[{}]_mi[{}]_frac[{}]_lora.pkl'.\
                 format(args.dataset, args.model, args.optimizer, 
                     args.local_lr, args.lr, args.eps, 
                     args.local_ep, args.local_bs, args.iid, args.max_init, args.frac)
@@ -52,34 +52,15 @@ if __name__ == '__main__':
     # Set the model to train and send it to device.
     global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes)
     global_model.to(device)
+    lora.mark_only_lora_as_trainable(global_model, bias='all')
 
-    # w_init = global_model.state_dict()
-    # for k, v in w_init.items():
-    #     print(k, v.shape)
-    # input()
+    # for n, p in global_model.named_parameters():
+    #     print(n, p.requires_grad)
+    #     if n == 'layer_hidden.weight':
+    #         p.requires_grad = True
 
-    # w_init = lora.lora_state_dict(global_model)
-    # for k, v in w_init.items():
-    #     print(k, v.shape)
-    # input()
-    
     global_model.train()
-    
-    
-    momentum_buffer_list = []
-    exp_avgs = []
-    exp_avg_sqs = []
-    max_exp_avg_sqs = [] 
-    for i, p in enumerate(global_model.parameters()):         
-        momentum_buffer_list.append(torch.zeros_like(p.data.detach().clone(), dtype=torch.float, requires_grad=False))
-        exp_avgs.append(torch.zeros_like(p.data.detach().clone(), dtype=torch.float, requires_grad=False))
-        exp_avg_sqs.append(torch.zeros_like(p.data.detach().clone(), dtype=torch.float, requires_grad=False))
-        max_exp_avg_sqs.append(torch.zeros_like(p.data.detach().clone(), dtype=torch.float, requires_grad=False)+args.max_init) # 1e-2
-    
-    
- 
-    
-    
+
     # Training
     train_loss_sampled, train_loss, train_accuracy = [], [], []
     test_loss, test_accuracy = [], []
@@ -87,14 +68,8 @@ if __name__ == '__main__':
     for epoch in tqdm(range(args.epochs)):
         ep_time = time.time()
         
-        local_weights, local_params, local_losses = [], [], []
+        local_weights, local_losses = [], []
         print(f'\n | Global Training Round : {epoch+1} |\n')
-        
-        par_before = []
-        for p in global_model.parameters():  # get trainable parameters
-            par_before.append(p.data.detach().clone())
-        # this is to store parameters before update
-        w0 = global_model.state_dict()  # get all parameters, includeing batch normalization related ones
         
         global_model.train()
         m = max(int(args.frac * args.num_users), 1)
@@ -105,17 +80,23 @@ if __name__ == '__main__':
             local_model = LocalUpdate(args=args, dataset=train_dataset,
                                       idxs=user_groups[idx], logger=logger)
             
-            w, p, loss = local_model.update_weights_local(
+            w, _, loss = local_model.update_weights_local(
                 model=copy.deepcopy(global_model), global_round=epoch)
-        
-            
             local_weights.append(copy.deepcopy(w))
-            local_params.append(copy.deepcopy(p))
             local_losses.append(copy.deepcopy(loss))
+            
+            # global_model.load_state_dict(w)
+            # global_model.eval()
 
-        bn_weights = average_weights(local_weights)
-        global_model.load_state_dict(bn_weights)
+         
+            # # Test inference after completion of training
+            # test_acc, test_ls = test_inference(args, global_model, test_dataset)
+            # print(test_acc)
+            # input()
+        
 
+        bn_weights = average_weights_lora(local_weights)
+        global_model.load_state_dict(bn_weights, strict=False)
         # report and store loss and accuracy
         # this is local training loss on sampled users
         loss_avg = sum(local_losses) / len(local_losses)
@@ -126,7 +107,7 @@ if __name__ == '__main__':
         logger.add_scalar('train loss', train_loss[-1], epoch)
 
         global_model.eval()
-        
+
          
         # Test inference after completion of training
         test_acc, test_ls = test_inference(args, global_model, test_dataset)
