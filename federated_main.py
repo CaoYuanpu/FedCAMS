@@ -18,13 +18,14 @@ from tensorboardX import SummaryWriter
 from options import args_parser
 from update import LocalUpdate, update_model_inplace, test_inference
 from utils import get_model, get_dataset, average_weights, exp_details, average_parameter_delta
+import loralib as lora
 
 if __name__ == '__main__':
     start_time = time.time()
 
     args = args_parser()
     exp_details(args)
-    
+
     # define paths
 #     out_dir_name = args.model + args.dataset + args.optimizer + '_lr' + str(args.lr) + '_locallr' + str(args.local_lr) + '_localep' + str(args.local_ep) +'_localbs' + str(args.local_bs) + '_eps' + str(args.eps)
     file_name = '/{}_{}_{}_llr[{}]_glr[{}]_eps[{}]_le[{}]_bs[{}]_iid[{}]_mi[{}]_frac[{}].pkl'.\
@@ -36,7 +37,7 @@ if __name__ == '__main__':
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else "cpu")
     torch.set_num_threads(1) # limit cpu use
     print ('-- pytorch version: ', torch.__version__)
-    
+
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
     if device != 'cpu':
@@ -51,6 +52,17 @@ if __name__ == '__main__':
     # Set the model to train and send it to device.
     global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes)
     global_model.to(device)
+
+    w_init = global_model.state_dict()
+    for k, v in w_init.items():
+        print(k, v.shape)
+    input()
+
+    w_init = lora.lora_state_dict(global_model)
+    for k, v in w_init.items():
+        print(k, v.shape)
+    input()
+    
     global_model.train()
     
     

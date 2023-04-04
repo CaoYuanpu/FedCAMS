@@ -53,6 +53,16 @@ def get_model(model_name, dataset, img_size, nclass):
             len_in *= x
         model = simple.MLP(dim_in=len_in, dim_hidden=64,
                             dim_out=nclass)
+
+    elif model_name == 'mlp_lora':
+        from models import simple
+
+        len_in = 1
+        for x in img_size:
+            len_in *= x
+        model = simple.MLP_lora(dim_in=len_in, dim_hidden=64,
+                            dim_out=nclass)
+
     else:
         exit('Error: unrecognized model')
 
@@ -201,6 +211,32 @@ def average_weights_lora(w):
         for i in range(1, len(w)):
             w_avg[key] += w[i][key]
         w_avg[key] = torch.div(w_avg[key], len(w))
+    return w_avg
+
+def average_weights_lora_split(w):
+    """
+    Returns the average of the weights.
+    """
+    w_avg = copy.deepcopy(w[0])
+    for key in w_avg.keys():
+        for i in range(1, len(w)):
+            w_avg[key] += w[i][key]
+        w_avg[key] = torch.div(w_avg[key], len(w))
+    
+    for k in w_avg.keys():
+        if 'lora_A' in k:
+            prefix = k.split('.')[0]
+            w_ba = w_avg[prefix+'.lora_B'] @ w_avg[prefix+'.lora_A'] / 8
+            w_avg[prefix+'.weight'] += w_ba
+
+    lora_k = []
+    for k in w_avg.keys():
+        if 'lora' in k:
+            lora_k.append(k)
+    
+    for k in lora_k:
+        del w_avg[k]
+
     return w_avg
 
 def average_parameter_delta(ws, w0):
