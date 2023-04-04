@@ -28,19 +28,14 @@ if __name__ == '__main__':
 
     # define paths
 #     out_dir_name = args.model + args.dataset + args.optimizer + '_lr' + str(args.lr) + '_locallr' + str(args.local_lr) + '_localep' + str(args.local_ep) +'_localbs' + str(args.local_bs) + '_eps' + str(args.eps)
-    if 'lora' in args.model:
-        file_name = '/{}_{}_{}_llr[{}]_bs[{}]_central_lora.pkl'.\
-                    format(args.dataset, args.model, args.optimizer, 
-                        args.local_lr, args.lr, args.eps, 
-                        args.local_ep, args.local_bs, args.iid, args.max_init, args.frac)
-    else:
-        file_name = '/{}_{}_{}_llr[{}]_bs[{}]_central.pkl'.\
-                    format(args.dataset, args.model, args.optimizer, 
-                        args.local_lr, args.lr, args.eps, 
-                        args.local_ep, args.local_bs, args.iid, args.max_init, args.frac)
+
+    file_name = '/{}_{}_{}_llr[{}]_bs[{}]_central.pkl'.\
+                format(args.dataset, args.model, args.optimizer, 
+                    args.local_lr, args.lr, args.eps, 
+                    args.local_ep, args.local_bs, args.iid, args.max_init, args.frac)
 
     logger = SummaryWriter('./logs/'+file_name)
-    
+
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else "cpu")
     torch.set_num_threads(1) # limit cpu use
     print ('-- pytorch version: ', torch.__version__)
