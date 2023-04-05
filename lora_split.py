@@ -88,7 +88,7 @@ if __name__ == '__main__':
         # this is local training loss on sampled users
         loss_avg = sum(local_losses) / len(local_losses)
         train_loss.append(loss_avg)
-        
+
         print('Epoch Run Time: {0:0.4f} of {1} global rounds'.format(time.time()-ep_time, epoch+1))
         print(f'Training Loss : {train_loss[-1]}')
         logger.add_scalar('train loss', train_loss[-1], epoch)
