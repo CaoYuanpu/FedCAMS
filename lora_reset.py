@@ -17,7 +17,7 @@ from tensorboardX import SummaryWriter
 
 from options import args_parser
 from update import LocalUpdate, update_model_inplace, test_inference
-from utils import get_model, get_dataset, average_weights_lora_reset, exp_details, average_parameter_delta
+from utils import get_model, get_dataset, average_weights, average_weights_lora_reset, exp_details, average_parameter_delta
 import loralib as lora
 
 if __name__ == '__main__':
@@ -80,7 +80,8 @@ if __name__ == '__main__':
             local_weights.append(copy.deepcopy(w))
             local_losses.append(copy.deepcopy(loss))
         
-        if epoch % args.reset == 0:
+        if (epoch+1) % args.reset == 0:
+            print("Reset")
             bn_weights = average_weights_lora_reset(local_weights)
             global_model.load_state_dict(bn_weights, strict=False)
         else:
