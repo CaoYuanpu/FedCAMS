@@ -186,7 +186,7 @@ def average_weights(w):
         w_avg[key] = torch.div(w_avg[key], len(w))
     return w_avg
 
-def average_weights_lora_agg(w):
+def average_weights_lora_reset_agg(w):
     """
     Returns the average of the weights.
     """
