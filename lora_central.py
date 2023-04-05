@@ -61,10 +61,6 @@ if __name__ == '__main__':
     testloader = DataLoader(test_dataset, batch_size=100, shuffle=False)
 
     global_model.train()
-    
-    for n, p in global_model.named_parameters():
-        print(n, p.shape, p.requires_grad)
-    input()
 
     optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
     criterion = nn.CrossEntropyLoss().to(device)
@@ -79,9 +75,6 @@ if __name__ == '__main__':
             loss = criterion(logits, labels)
             loss.backward()
             optimizer.step()
-
-        global_model.eval()
-
          
         # Test inference after completion of training
         test_acc, test_ls = test_inference(args, global_model, test_dataset)
