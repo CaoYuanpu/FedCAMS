@@ -59,5 +59,9 @@ def args_parser():
     parser.add_argument('--outfolder', type=str, default='./results')
 
     parser.add_argument('--compressor', type=str, default='sign', help='compressor strategy')
+    
+    parser.add_argument('--reset', type=int, default=1,
+                        help="reset lora")
+
     args = parser.parse_args()
     return args

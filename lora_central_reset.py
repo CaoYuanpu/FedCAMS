@@ -29,10 +29,9 @@ if __name__ == '__main__':
     # define paths
 #     out_dir_name = args.model + args.dataset + args.optimizer + '_lr' + str(args.lr) + '_locallr' + str(args.local_lr) + '_localep' + str(args.local_ep) +'_localbs' + str(args.local_bs) + '_eps' + str(args.eps)
     if 'lora' in args.model:
-        file_name = '/{}_{}_{}_llr[{}]_bs[{}]_central_reset1.pkl'.\
+        file_name = '/{}_{}_{}_llr[{}]_bs[{}]_central_reset{}.pkl'.\
                     format(args.dataset, args.model, args.optimizer, 
-                        args.local_lr, args.lr, args.eps, 
-                        args.local_ep, args.local_bs, args.iid, args.max_init, args.frac)
+                        args.local_lr, args.lr, args.reset)
 
     logger = SummaryWriter('./logs/'+file_name)
     
@@ -110,7 +109,7 @@ if __name__ == '__main__':
             # Saving the objects train_loss and train_accuracy:
             with open(args.outfolder + file_name, 'wb') as f:
                 pickle.dump([test_loss, test_accuracy], f)
-        if (epoch+1) % 1 == 0:
+        if (epoch+1) % args.reset == 0:
             print(f'epoch: {epoch+1} reset')
             nn.init.kaiming_uniform_(global_model.layer_input.lora_A, a=math.sqrt(5))
             nn.init.zeros_(global_model.layer_input.lora_B)
