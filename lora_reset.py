@@ -17,7 +17,7 @@ from tensorboardX import SummaryWriter
 
 from options import args_parser
 from update import LocalUpdate, update_model_inplace, test_inference
-from utils import get_model, get_dataset, average_weights, exp_details, average_parameter_delta
+from utils import get_model, get_dataset, average_weights_lora_reset, exp_details, average_parameter_delta
 import loralib as lora
 
 if __name__ == '__main__':
@@ -28,10 +28,10 @@ if __name__ == '__main__':
 
     # define paths
 #     out_dir_name = args.model + args.dataset + args.optimizer + '_lr' + str(args.lr) + '_locallr' + str(args.local_lr) + '_localep' + str(args.local_ep) +'_localbs' + str(args.local_bs) + '_eps' + str(args.eps)
-    file_name = '/{}_{}_{}_llr[{}]_glr[{}]_eps[{}]_le[{}]_bs[{}]_iid[{}]_mi[{}]_frac[{}].pkl'.\
+    file_name = '/{}_{}_{}_llr[{}]_glr[{}]_eps[{}]_le[{}]_bs[{}]_iid[{}]_mi[{}]_frac[{}]_reset{}.pkl'.\
                 format(args.dataset, args.model, args.optimizer, 
                     args.local_lr, args.lr, args.eps, 
-                    args.local_ep, args.local_bs, args.iid, args.max_init, args.frac)
+                    args.local_ep, args.local_bs, args.iid, args.max_init, args.frac, args.reset)
     logger = SummaryWriter('./logs/'+file_name)
 
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else "cpu")
@@ -80,9 +80,12 @@ if __name__ == '__main__':
             local_weights.append(copy.deepcopy(w))
             local_losses.append(copy.deepcopy(loss))
         
-
-        bn_weights = average_weights(local_weights)
-        global_model.load_state_dict(bn_weights, strict=False)
+        if epoch % args.reset == 0:
+            bn_weights = average_weights_lora_reset(local_weights)
+            global_model.load_state_dict(bn_weights, strict=False)
+        else:
+            bn_weights = average_weights(local_weights)
+            global_model.load_state_dict(bn_weights) 
 
         # report and store loss and accuracy
         # this is local training loss on sampled users
