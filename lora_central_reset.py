@@ -67,8 +67,9 @@ if __name__ == '__main__':
     # optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
     criterion = nn.CrossEntropyLoss().to(device)
     test_loss, test_accuracy = [], []
+    optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
+
     for epoch in tqdm(range(args.epochs)):
-        optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
         # print("start train")
         global_model.train()
         # print(global_model.layer_input.merged)
