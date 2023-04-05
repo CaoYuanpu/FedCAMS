@@ -28,10 +28,10 @@ if __name__ == '__main__':
 
     # define paths
 #     out_dir_name = args.model + args.dataset + args.optimizer + '_lr' + str(args.lr) + '_locallr' + str(args.local_lr) + '_localep' + str(args.local_ep) +'_localbs' + str(args.local_bs) + '_eps' + str(args.eps)
-    file_name = '/{}_{}_{}_llr[{}]_glr[{}]_eps[{}]_le[{}]_bs[{}]_iid[{}]_mi[{}]_frac[{}]_reset{}.pkl'.\
+    file_name = '/{}_{}_{}_llr[{}]_glr[{}]_eps[{}]_le[{}]_bs[{}]_iid[{}]_mi[{}]_frac[{}]_reset{}_rank{}.pkl'.\
                 format(args.dataset, args.model, args.optimizer, 
                     args.local_lr, args.lr, args.eps, 
-                    args.local_ep, args.local_bs, args.iid, args.max_init, args.frac, args.reset)
+                    args.local_ep, args.local_bs, args.iid, args.max_init, args.frac, args.reset, args.r)
     logger = SummaryWriter('./logs/'+file_name)
 
     device = torch.device('cuda:{}'.format(args.gpu) if torch.cuda.is_available() else "cpu")
@@ -50,10 +50,13 @@ if __name__ == '__main__':
     train_dataset, test_dataset, num_classes, user_groups = get_dataset(args)
 
     # Set the model to train and send it to device.
-    global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes)
+    global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes, args.r)
     global_model.to(device)
     lora.mark_only_lora_as_trainable(global_model, bias='all')
-
+    
+    # for n, p in global_model.named_parameters():
+    #     print(n, p.shape, p.requires_grad)
+    # input()
 
     # Training
     train_loss_sampled, train_loss, train_accuracy = [], [], []
@@ -82,7 +85,7 @@ if __name__ == '__main__':
         
         if (epoch+1) % args.reset == 0:
             print("Reset")
-            bn_weights = average_weights_lora_reset(local_weights)
+            bn_weights = average_weights_lora_reset(local_weights, args.r)
             global_model.load_state_dict(bn_weights, strict=False)
         else:
             bn_weights = average_weights(local_weights)

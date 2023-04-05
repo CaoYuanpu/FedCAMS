@@ -8,15 +8,15 @@ import loralib as lora
 
 
 class MLP_lora(nn.Module):
-    def __init__(self, dim_in, dim_hidden, dim_out):
+    def __init__(self, dim_in, dim_hidden, dim_out, r):
         super(MLP_lora, self).__init__()
         # self.layer_input = nn.Linear(dim_in, dim_hidden)
-        self.layer_input = lora.Linear(dim_in, dim_hidden, r=8)
+        self.layer_input = lora.Linear(dim_in, dim_hidden, r=r)
         
         self.relu = nn.ReLU()
         # self.dropout = nn.Dropout()
         # self.layer_hidden = nn.Linear(dim_hidden, dim_out)
-        self.layer_hidden = lora.Linear(dim_hidden, dim_out, r=8)
+        self.layer_hidden = lora.Linear(dim_hidden, dim_out, r=r)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):

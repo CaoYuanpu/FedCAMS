@@ -62,6 +62,7 @@ def args_parser():
     
     parser.add_argument('--reset', type=int, default=1,
                         help="reset lora")
-
+    parser.add_argument('--r', type=int, default=8,
+                        help="rank")
     args = parser.parse_args()
     return args

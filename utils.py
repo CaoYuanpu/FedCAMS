@@ -9,7 +9,7 @@ from sampling import mnist_iid, mnist_noniid, mnist_noniid_unequal
 from sampling import cifar_iid, cifar_noniid
 # from models.randaug import RandAugment
 
-def get_model(model_name, dataset, img_size, nclass):
+def get_model(model_name, dataset, img_size, nclass, r):
     if model_name == 'vggnet':
         from models import vgg
         model = vgg.VGG('VGG11', num_classes=nclass)
@@ -61,7 +61,7 @@ def get_model(model_name, dataset, img_size, nclass):
         for x in img_size:
             len_in *= x
         model = simple.MLP_lora(dim_in=len_in, dim_hidden=64,
-                            dim_out=nclass)
+                            dim_out=nclass, r=r)
 
     else:
         exit('Error: unrecognized model')
@@ -213,7 +213,7 @@ def average_weights_lora_reset_agg(w):
         w_avg[key] = torch.div(w_avg[key], len(w))
     return w_avg
 
-def average_weights_lora_reset(w):
+def average_weights_lora_reset(w, r):
     """
     Returns the average of the weights.
     """
@@ -226,7 +226,7 @@ def average_weights_lora_reset(w):
     for k in w_avg.keys():
         if 'lora_A' in k:
             prefix = k.split('.')[0]
-            w_ba = w_avg[prefix+'.lora_B'] @ w_avg[prefix+'.lora_A'] / 8
+            w_ba = w_avg[prefix+'.lora_B'] @ w_avg[prefix+'.lora_A'] / r
             w_avg[prefix+'.weight'] += w_ba
 
     lora_k = []
