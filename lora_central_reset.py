@@ -51,7 +51,7 @@ if __name__ == '__main__':
     train_dataset, test_dataset, num_classes, user_groups = get_dataset(args)
 
     # Set the model to train and send it to device.
-    global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes)
+    global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes, r=args.r)
     global_model.to(device)
     if 'lora' in args.model:
         lora.mark_only_lora_as_trainable(global_model, bias='all')
