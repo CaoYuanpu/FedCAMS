@@ -66,10 +66,12 @@ if __name__ == '__main__':
 
     # optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
     criterion = nn.CrossEntropyLoss().to(device)
-    test_loss, test_accuracy = [], []
+    train_loss, test_loss, test_accuracy = [], [], []
     optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
 
     for epoch in tqdm(range(args.epochs)):
+        total = 0
+        batch_loss = []
         # print("start train")
         global_model.train()
         # print(global_model.layer_input.merged)
@@ -88,10 +90,12 @@ if __name__ == '__main__':
             loss = criterion(logits, labels)
             loss.backward()
             optimizer.step()
+            
+            batch_loss.append(loss.item() * len(labels))
+            total += len(labels)
 
-        # global_model.eval()
-        # global_model.layer_input.eval()
-        # global_model.layer_hidden.eval()
+        train_loss.append(sum(batch_loss)/total)
+
 
         # Test inference after completion of training
         test_acc, test_ls = test_inference(args, global_model, test_dataset)
@@ -99,10 +103,10 @@ if __name__ == '__main__':
         test_loss.append(test_ls)
 
         # print global training loss after every rounds
-
+        print(f'Train Loss : {train_loss[-1]}')
         print(f'Test Loss : {test_loss[-1]}')
         print(f'Test Accuracy : {test_accuracy[-1]} \n')
-
+        logger.add_scalar('train loss', train_loss[-1], epoch)
         logger.add_scalar('test loss', test_loss[-1], epoch)
         logger.add_scalar('test acc', test_accuracy[-1], epoch)
 
