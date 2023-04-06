@@ -17,7 +17,7 @@ from tensorboardX import SummaryWriter
 
 from options import args_parser
 from update import LocalUpdate, update_model_inplace, test_inference
-from utils import get_model, get_dataset, average_weights_lora, average_weights_lora_split, exp_details, average_parameter_delta
+from utils import get_model, get_dataset, exp_details, average_parameter_delta
 import loralib as lora
 from torch.utils.data import DataLoader, Dataset
 if __name__ == '__main__':
