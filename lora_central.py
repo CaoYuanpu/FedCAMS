@@ -17,7 +17,7 @@ from tensorboardX import SummaryWriter
 
 from options import args_parser
 from update import LocalUpdate, update_model_inplace, test_inference
-from utils import get_model, get_dataset, average_weights_lora, average_weights_lora_split, exp_details, average_parameter_delta
+from utils import get_model, get_dataset, exp_details, average_parameter_delta
 import loralib as lora
 from torch.utils.data import DataLoader, Dataset
 if __name__ == '__main__':
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     train_dataset, test_dataset, num_classes, user_groups = get_dataset(args)
 
     # Set the model to train and send it to device.
-    global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes)
+    global_model = get_model(args.model, args.dataset, train_dataset[0][0].shape, num_classes, r=args.r)
     global_model.to(device)
     if 'lora' in args.model:
         lora.mark_only_lora_as_trainable(global_model, bias='all')
@@ -60,12 +60,21 @@ if __name__ == '__main__':
     trainloader = DataLoader(train_dataset, batch_size=args.local_bs, shuffle=True)
     testloader = DataLoader(test_dataset, batch_size=100, shuffle=False)
 
-    global_model.train()
-
     optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
     criterion = nn.CrossEntropyLoss().to(device)
-    test_loss, test_accuracy = [], []
+    train_loss, test_loss, test_accuracy = [], [], []
+    r_input, r_hidden = [], []
+    
+    w0_input = global_model.layer_input.weight.data.clone()
+    w0_hidden = global_model.layer_hidden.weight.data.clone()
+    print("Initial...")
+    print(w0_input.shape, torch.linalg.matrix_rank(w0_input))
+    print(w0_hidden.shape, torch.linalg.matrix_rank(w0_hidden))
+    print()
+    
     for epoch in tqdm(range(args.epochs)):
+        total = 0
+        batch_loss = []
         global_model.train()
         for batch_idx, (images, labels) in enumerate(trainloader):
             images, labels = images.to(device), labels.to(device)
@@ -75,20 +84,32 @@ if __name__ == '__main__':
             loss = criterion(logits, labels)
             loss.backward()
             optimizer.step()
-         
+            
+            batch_loss.append(loss.item() * len(labels))
+            total += len(labels)
+
+        train_loss.append(sum(batch_loss)/total)
+
+
         # Test inference after completion of training
         test_acc, test_ls = test_inference(args, global_model, test_dataset)
         test_accuracy.append(test_acc)
         test_loss.append(test_ls)
+        r_input.append(torch.linalg.matrix_rank(global_model.layer_input.weight.data - w0_input))
+        r_hidden.append(torch.linalg.matrix_rank(global_model.layer_hidden.weight.data -  w0_hidden))
 
         # print global training loss after every rounds
-
+        print()
+        print(f'Train Loss : {train_loss[-1]}')
         print(f'Test Loss : {test_loss[-1]}')
         print(f'Test Accuracy : {test_accuracy[-1]} \n')
-
+        print(f'rank input layer: {r_input[-1]}')
+        print(f'rank hidden layer: {r_hidden[-1]}')
+        logger.add_scalar('train loss', train_loss[-1], epoch)
         logger.add_scalar('test loss', test_loss[-1], epoch)
         logger.add_scalar('test acc', test_accuracy[-1], epoch)
-
+        logger.add_scalar('r input', r_input[-1], epoch)
+        logger.add_scalar('r hidden', r_hidden[-1], epoch)
         if args.save:
             # Saving the objects train_loss and train_accuracy:
             with open(args.outfolder + file_name, 'wb') as f:
