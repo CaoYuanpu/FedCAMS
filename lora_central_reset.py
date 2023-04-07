@@ -67,21 +67,20 @@ if __name__ == '__main__':
     # optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
     criterion = nn.CrossEntropyLoss().to(device)
     train_loss, test_loss, test_accuracy = [], [], []
+    r_input, r_hidden = [], []
     optimizer = torch.optim.SGD(global_model.parameters(), lr=args.local_lr, momentum=0)
-
+    
+    w0_input = global_model.layer_input.weight.data.clone()
+    w0_hidden = global_model.layer_hidden.weight.data.clone()
+    print("Initial...")
+    print(w0_input.shape, torch.linalg.matrix_rank(w0_input))
+    print(w0_hidden.shape, torch.linalg.matrix_rank(w0_hidden))
+    print()
     for epoch in tqdm(range(args.epochs)):
         total = 0
         batch_loss = []
-        # print("start train")
         global_model.train()
-        # print(global_model.layer_input.merged)
-        # print(global_model.layer_input.merge_weights)
-        # print("finish train")
-        # print(global_model.layer_input.weight)
-        # print(global_model.layer_input.lora_A)
-        # print(global_model.layer_input.lora_B)
-        # input()
-        
+
         for batch_idx, (images, labels) in enumerate(trainloader):
             images, labels = images.to(device), labels.to(device)
 
@@ -101,15 +100,20 @@ if __name__ == '__main__':
         test_acc, test_ls = test_inference(args, global_model, test_dataset)
         test_accuracy.append(test_acc)
         test_loss.append(test_ls)
+        r_input.append(torch.linalg.matrix_rank(global_model.layer_input.weight.data - w0_input))
+        r_hidden.append(torch.linalg.matrix_rank(global_model.layer_hidden.weight.data -  w0_hidden))
 
         # print global training loss after every rounds
         print(f'Train Loss : {train_loss[-1]}')
         print(f'Test Loss : {test_loss[-1]}')
         print(f'Test Accuracy : {test_accuracy[-1]} \n')
+        print(f'rank input layer: {r_input[-1]}')
+        print(f'rank hidden layer: {r_hidden[-1]}')
         logger.add_scalar('train loss', train_loss[-1], epoch)
         logger.add_scalar('test loss', test_loss[-1], epoch)
         logger.add_scalar('test acc', test_accuracy[-1], epoch)
-
+        logger.add_scalar('r input', r_input[-1], epoch)
+        logger.add_scalar('r hidden', r_hidden[-1], epoch)
         if args.save:
             # Saving the objects train_loss and train_accuracy:
             with open(args.outfolder + file_name, 'wb') as f:
@@ -120,12 +124,5 @@ if __name__ == '__main__':
             nn.init.zeros_(global_model.layer_input.lora_B)
             nn.init.kaiming_uniform_(global_model.layer_hidden.lora_A, a=math.sqrt(5))
             nn.init.zeros_(global_model.layer_hidden.lora_B)
-
-        # print(global_model.layer_input.lora_A)
-        # print(global_model.layer_input.lora_B)
-        # print(global_model.layer_input.weight)
-        # print(global_model.layer_input.merged)
-        # print(global_model.layer_input.merge_weights)
-        # input()
 
     print('\n Total Run Time: {0:0.4f}'.format(time.time()-start_time))

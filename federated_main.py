@@ -95,7 +95,7 @@ if __name__ == '__main__':
             
             w, p, loss = local_model.update_weights_local(
                 model=copy.deepcopy(global_model), global_round=epoch)
-        
+
             
             local_weights.append(copy.deepcopy(w))
             local_params.append(copy.deepcopy(p))
