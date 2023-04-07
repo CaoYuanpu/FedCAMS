@@ -113,6 +113,6 @@ if __name__ == '__main__':
         if args.save:
             # Saving the objects train_loss and train_accuracy:
             with open(args.outfolder + file_name, 'wb') as f:
-                pickle.dump([test_loss, test_accuracy], f)
+                pickle.dump([train_loss, test_loss, test_accuracy, r_input, r_hidden], f)
 
     print('\n Total Run Time: {0:0.4f}'.format(time.time()-start_time))

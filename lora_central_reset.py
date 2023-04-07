@@ -117,7 +117,7 @@ if __name__ == '__main__':
         if args.save:
             # Saving the objects train_loss and train_accuracy:
             with open(args.outfolder + file_name, 'wb') as f:
-                pickle.dump([test_loss, test_accuracy], f)
+                pickle.dump([train_loss, test_loss, test_accuracy, r_input, r_hidden], f)
         if (epoch+1) % args.reset == 0:
             print(f'epoch: {epoch+1} reset')
             nn.init.kaiming_uniform_(global_model.layer_input.lora_A, a=math.sqrt(5))
