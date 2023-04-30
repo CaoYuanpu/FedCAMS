@@ -66,7 +66,7 @@ variable = ["age", "gender",
             "eci_Obesity", "eci_WeightLoss", "eci_FluidsLytes", "eci_BloodLoss",
             "eci_Anemia", "eci_Alcohol", "eci_Drugs","eci_Psychoses", "eci_Depression"]
 variable.extend(list(test_cxr_note_embs.columns))
-variable.extend(list(test_cxr_img_embs.columns))
+variable.extend(list(train_cxr_img_embs.columns))
 print(variable)
 outcome = "outcome_hospitalization"
 
