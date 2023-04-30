@@ -72,14 +72,14 @@ outcome = "outcome_hospitalization"
 
 X_train = df_train[variable].copy()
 y_train = df_train[outcome].copy()
-X_test = df_test[variable].copy()
-y_test = df_test[outcome].copy()
+# X_test = df_test[variable].copy()
+# y_test = df_test[outcome].copy()
 
 X_train.dtypes.to_frame().T
 
 encoder = LabelEncoder()
 X_train['gender'] = encoder.fit_transform(X_train['gender'])
-X_test['gender'] = encoder.transform(X_test['gender'])
+# X_test['gender'] = encoder.transform(X_test['gender'])
 
 print('class ratio')
 ratio = y_train.sum()/(~y_train).sum()
