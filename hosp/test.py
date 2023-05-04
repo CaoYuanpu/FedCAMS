@@ -15,8 +15,8 @@ from dataset_path import output_path
 
 path = output_path
 output_path = os.path.join(path, "Figure3")
-# df_train = pd.read_csv((os.path.join(path, 'train.csv')))
-df_test = pd.read_csv((os.path.join(path, 'test.csv')))
+df_train = pd.read_csv((os.path.join(path, 'train.csv')))
+df_test = pd.read_csv((os.path.join(path, 'test.csv'))
 
 # train_cxr_note_embs = list(np.load((os.path.join(path, 'train_cxr_note_embs.npy'))))
 test_cxr_note_embs = list(np.load((os.path.join(path, 'test_cxr_note_embs.npy'))))
@@ -78,9 +78,11 @@ X_test = df_test[variable].copy()
 y_test = df_test[outcome].copy()
 
 # X_train.dtypes.to_frame().T
+X_test.dtypes.to_frame().T
 
 encoder = LabelEncoder()
 # X_train['gender'] = encoder.fit_transform(X_train['gender'])
+print(X_test['gender'][:10])
 X_test['gender'] = encoder.transform(X_test['gender'])
 
 print('class ratio')
