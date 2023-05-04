@@ -111,10 +111,9 @@ mlp = MLP()
 mlp.compile(loss='binary_crossentropy', 
               optimizer=optimizers.Adam(learning_rate=0.001), 
               metrics=['accuracy', 'AUC', {'auprc': metrics.AUC(name='auprc', curve='PR')}, 
-                       'TruePositives', 'TrueNegatives', 'Precision', 'Recall'],
-              validation_data=(X_test, y_test))
+                       'TruePositives', 'TrueNegatives', 'Precision', 'Recall'])
 start = time.time()
-mlp.fit(X_train.astype(np.float32), y_train, batch_size=200, epochs=200)
+mlp.fit(X_train.astype(np.float32), y_train, batch_size=200, epochs=200, validation_data=(X_test, y_test))
 runtime = time.time() - start
 print('Training time:', runtime, 'seconds')
 mlp.save('hospitalization_triage_mlp')
