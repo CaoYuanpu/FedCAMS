@@ -15,22 +15,22 @@ from dataset_path import output_path
 
 path = output_path
 output_path = os.path.join(path, "Figure3")
-df_train = pd.read_csv((os.path.join(path, 'train.csv')))
+# df_train = pd.read_csv((os.path.join(path, 'train.csv')))
 df_test = pd.read_csv((os.path.join(path, 'test.csv')))
 
-train_cxr_note_embs = list(np.load((os.path.join(path, 'train_cxr_note_embs.npy'))))
+# train_cxr_note_embs = list(np.load((os.path.join(path, 'train_cxr_note_embs.npy'))))
 test_cxr_note_embs = list(np.load((os.path.join(path, 'test_cxr_note_embs.npy'))))
 
-train_cxr_img_embs = list(np.load((os.path.join(path, 'train_cxr_img_embs.npy'))))
+# train_cxr_img_embs = list(np.load((os.path.join(path, 'train_cxr_img_embs.npy'))))
 test_cxr_img_embs = list(np.load((os.path.join(path, 'test_cxr_img_embs.npy'))))
 
-train_cxr_note_embs = pd.DataFrame(train_cxr_note_embs, columns = ['cxr_note_emb'+str(i) for i in range(128)])
+# train_cxr_note_embs = pd.DataFrame(train_cxr_note_embs, columns = ['cxr_note_emb'+str(i) for i in range(128)])
 test_cxr_note_embs = pd.DataFrame(test_cxr_note_embs, columns = ['cxr_note_emb'+str(i) for i in range(128)])
 
-train_cxr_img_embs = pd.DataFrame(train_cxr_img_embs, columns = ['cxr_img_emb'+str(i) for i in range(1376)])
+# train_cxr_img_embs = pd.DataFrame(train_cxr_img_embs, columns = ['cxr_img_emb'+str(i) for i in range(1376)])
 test_cxr_img_embs = pd.DataFrame(test_cxr_img_embs, columns = ['cxr_img_emb'+str(i) for i in range(1376)])
 
-df_train = pd.concat([df_train, train_cxr_note_embs, train_cxr_img_embs], axis = 1)
+# df_train = pd.concat([df_train, train_cxr_note_embs, train_cxr_img_embs], axis = 1)
 df_test = pd.concat([df_test, test_cxr_note_embs, test_cxr_img_embs], axis = 1)
 
 confidence_interval = 95
@@ -41,8 +41,8 @@ np.random.seed(random_seed)
 
 pd.set_option('display.max_columns', 100) 
 pd.set_option('display.max_rows', 100) 
-print(df_train.head())
-print('training size =', len(df_train), ', testing size =', len(df_test))
+# print(df_train.head())
+# print('training size =', len(df_train), ', testing size =', len(df_test))
 
 
 variable = ["age", "gender", 
@@ -68,23 +68,23 @@ variable = ["age", "gender",
             "eci_Obesity", "eci_WeightLoss", "eci_FluidsLytes", "eci_BloodLoss",
             "eci_Anemia", "eci_Alcohol", "eci_Drugs","eci_Psychoses", "eci_Depression"]
 variable.extend(list(test_cxr_note_embs.columns))
-variable.extend(list(train_cxr_img_embs.columns))
+variable.extend(list(test_cxr_img_embs.columns))
 print(variable)
 outcome = "outcome_hospitalization"
 
-X_train = df_train[variable].copy()
-y_train = df_train[outcome].copy()
+# X_train = df_train[variable].copy()
+# y_train = df_train[outcome].copy()
 X_test = df_test[variable].copy()
 y_test = df_test[outcome].copy()
 
-X_train.dtypes.to_frame().T
+# X_train.dtypes.to_frame().T
 
 encoder = LabelEncoder()
-X_train['gender'] = encoder.fit_transform(X_train['gender'])
+# X_train['gender'] = encoder.fit_transform(X_train['gender'])
 X_test['gender'] = encoder.transform(X_test['gender'])
 
 print('class ratio')
-ratio = y_train.sum()/(~y_train).sum()
+# ratio = y_train.sum()/(~y_train).sum()
 print('positive : negative =', ratio, ': 1')
 
 
