@@ -13,6 +13,7 @@ from helpers import PlotROCCurve
 
 from dataset_path import output_path
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+pred = np.load('pred.npy')
 
 path = output_path
 output_path = os.path.join(path, "Figure3")
@@ -128,7 +129,7 @@ class MLP(tf.keras.Model):
 mlp = MLP()
 callback = tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=7, restore_best_weights=True)
 mlp.compile(loss='binary_crossentropy', 
-              optimizer=optimizers.Adam(learning_rate=0.001, weight_decay=0.004), 
+              optimizer=optimizers.AdamW(learning_rate=0.001, weight_decay=0.004), 
               metrics=['accuracy', 'AUC', {'auprc': metrics.AUC(name='auprc', curve='PR')}, 
                        'TruePositives', 'TrueNegatives', 'Precision', 'Recall'])
 start = time.time()
@@ -137,10 +138,10 @@ runtime = time.time() - start
 print('Training time:', runtime, 'seconds')
 print(history.history['val_auc'])
 probs = mlp.predict(X_test.astype(np.float32))
-np.save("pred.npy", probs)
+np.save("pred_adamw.npy", probs)
 result = PlotROCCurve(probs,y_test, ci=confidence_interval, random_seed=random_seed)
 mlp.save('hospitalization_triage_mlp')
 
-pred = np.load('pred.npy')
+pred = np.load('pred_adamw.npy')
 print(pred.shape)
 result = PlotROCCurve(pred,y_test, ci=confidence_interval, random_seed=random_seed)
