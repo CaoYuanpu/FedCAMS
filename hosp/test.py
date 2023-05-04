@@ -85,9 +85,9 @@ encoder = LabelEncoder()
 print(X_test['gender'][:10])
 X_test['gender'] = encoder.fit_transform(X_test['gender'])
 
-print('class ratio')
+# print('class ratio')
 # ratio = y_train.sum()/(~y_train).sum()
-print('positive : negative =', ratio, ': 1')
+# print('positive : negative =', ratio, ': 1')
 
 
 # Containers for all results
