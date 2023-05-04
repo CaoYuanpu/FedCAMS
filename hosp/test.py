@@ -15,22 +15,22 @@ from dataset_path import output_path
 
 path = output_path
 output_path = os.path.join(path, "Figure3")
-# df_train = pd.read_csv((os.path.join(path, 'train.csv')))
+df_train = pd.read_csv((os.path.join(path, 'train.csv')))
 df_test = pd.read_csv((os.path.join(path, 'test.csv')))
 
-# train_cxr_note_embs = list(np.load((os.path.join(path, 'train_cxr_note_embs.npy'))))
+train_cxr_note_embs = list(np.load((os.path.join(path, 'train_cxr_note_embs.npy'))))
 test_cxr_note_embs = list(np.load((os.path.join(path, 'test_cxr_note_embs.npy'))))
 
-# train_cxr_img_embs = list(np.load((os.path.join(path, 'train_cxr_img_embs.npy'))))
+train_cxr_img_embs = list(np.load((os.path.join(path, 'train_cxr_img_embs.npy'))))
 test_cxr_img_embs = list(np.load((os.path.join(path, 'test_cxr_img_embs.npy'))))
 
-# train_cxr_note_embs = pd.DataFrame(train_cxr_note_embs, columns = ['cxr_note_emb'+str(i) for i in range(128)])
+train_cxr_note_embs = pd.DataFrame(train_cxr_note_embs, columns = ['cxr_note_emb'+str(i) for i in range(128)])
 test_cxr_note_embs = pd.DataFrame(test_cxr_note_embs, columns = ['cxr_note_emb'+str(i) for i in range(128)])
 
-# train_cxr_img_embs = pd.DataFrame(train_cxr_img_embs, columns = ['cxr_img_emb'+str(i) for i in range(1376)])
+train_cxr_img_embs = pd.DataFrame(train_cxr_img_embs, columns = ['cxr_img_emb'+str(i) for i in range(1376)])
 test_cxr_img_embs = pd.DataFrame(test_cxr_img_embs, columns = ['cxr_img_emb'+str(i) for i in range(1376)])
 
-# df_train = pd.concat([df_train, train_cxr_note_embs, train_cxr_img_embs], axis = 1)
+df_train = pd.concat([df_train, train_cxr_note_embs, train_cxr_img_embs], axis = 1)
 df_test = pd.concat([df_test, test_cxr_note_embs, test_cxr_img_embs], axis = 1)
 
 confidence_interval = 95
@@ -72,17 +72,16 @@ variable.extend(list(test_cxr_img_embs.columns))
 print(variable)
 outcome = "outcome_hospitalization"
 
-# X_train = df_train[variable].copy()
-# y_train = df_train[outcome].copy()
+X_train = df_train[variable].copy()
+y_train = df_train[outcome].copy()
 X_test = df_test[variable].copy()
 y_test = df_test[outcome].copy()
 
-# X_train.dtypes.to_frame().T
+X_train.dtypes.to_frame().T
 X_test.dtypes.to_frame().T
 
 encoder = LabelEncoder()
-# X_train['gender'] = encoder.fit_transform(X_train['gender'])
-print(X_test['gender'][:10])
+X_train['gender'] = encoder.fit_transform(X_train['gender'])
 X_test['gender'] = encoder.fit_transform(X_test['gender'])
 
 # print('class ratio')
@@ -108,16 +107,17 @@ class MLP(tf.keras.Model):
 
 
 # skip this cell if not retraining
-# mlp = MLP()
-# mlp.compile(loss='binary_crossentropy', 
-#               optimizer=optimizers.Adam(learning_rate=0.001), 
-#               metrics=['accuracy', 'AUC', {'auprc': metrics.AUC(name='auprc', curve='PR')}, 
-#                        'TruePositives', 'TrueNegatives', 'Precision', 'Recall'])
-# start = time.time()
-# mlp.fit(X_train.astype(np.float32), y_train, batch_size=200, epochs=200)
-# runtime = time.time() - start
-# print('Training time:', runtime, 'seconds')
-# mlp.save('hospitalization_triage_mlp')
+mlp = MLP()
+mlp.compile(loss='binary_crossentropy', 
+              optimizer=optimizers.Adam(learning_rate=0.001), 
+              metrics=['accuracy', 'AUC', {'auprc': metrics.AUC(name='auprc', curve='PR')}, 
+                       'TruePositives', 'TrueNegatives', 'Precision', 'Recall'],
+              validation_data=(X_test, y_test))
+start = time.time()
+mlp.fit(X_train.astype(np.float32), y_train, batch_size=200, epochs=200)
+runtime = time.time() - start
+print('Training time:', runtime, 'seconds')
+mlp.save('hospitalization_triage_mlp')
 
 print("MLP:")
 mlp = load_model('hospitalization_triage_mlp')
