@@ -107,18 +107,39 @@ class MLP(tf.keras.Model):
 
 
 # skip this cell if not retraining
+# mlp = MLP()
+# mlp.compile(loss='binary_crossentropy', 
+#               optimizer=optimizers.Adam(learning_rate=0.001, weight_decay=0.004), 
+#               metrics=['accuracy', 'AUC', {'auprc': metrics.AUC(name='auprc', curve='PR')}, 
+#                        'TruePositives', 'TrueNegatives', 'Precision', 'Recall'])
+# start = time.time()
+# mlp.fit(X_train.astype(np.float32), y_train, batch_size=200, epochs=31, validation_data=(X_test.astype(np.float32), y_test))
+# runtime = time.time() - start
+# print('Training time:', runtime, 'seconds')
+# mlp.save('hospitalization_triage_mlp')
+
+# print("MLP:")
+# mlp = load_model('hospitalization_triage_mlp')
+# probs = mlp.predict(X_test.astype(np.float32))
+# result = PlotROCCurve(probs,y_test, ci=confidence_interval, random_seed=random_seed)
+
+
 mlp = MLP()
+callback = tf.keras.callbacks.EarlyStopping(monitor='val_auc', patience=5, restore_best_weights=True)
 mlp.compile(loss='binary_crossentropy', 
               optimizer=optimizers.Adam(learning_rate=0.001, weight_decay=0.004), 
               metrics=['accuracy', 'AUC', {'auprc': metrics.AUC(name='auprc', curve='PR')}, 
                        'TruePositives', 'TrueNegatives', 'Precision', 'Recall'])
 start = time.time()
-mlp.fit(X_train.astype(np.float32), y_train, batch_size=200, epochs=31, validation_data=(X_test.astype(np.float32), y_test))
+history = mlp.fit(X_train.astype(np.float32), y_train, batch_size=120, epochs=100, validation_data=(X_test.astype(np.float32), y_test), callbacks=[callback])
 runtime = time.time() - start
 print('Training time:', runtime, 'seconds')
+print(history.history['val_auc'])
+probs = mlp.predict(X_test.astype(np.float32))
+np.save("pred.npy", probs)
+result = PlotROCCurve(probs,y_test, ci=confidence_interval, random_seed=random_seed)
 mlp.save('hospitalization_triage_mlp')
 
-print("MLP:")
-mlp = load_model('hospitalization_triage_mlp')
-probs = mlp.predict(X_test.astype(np.float32))
-result = PlotROCCurve(probs,y_test, ci=confidence_interval, random_seed=random_seed)
+pred = np.load('pred.npy')
+print(pred.shape)
+result = PlotROCCurve(pred,y_test, ci=confidence_interval, random_seed=random_seed)
