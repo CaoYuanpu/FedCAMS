@@ -98,13 +98,15 @@ result_list = []
 class MLP(tf.keras.Model):
     def __init__(self):
         super(MLP, self).__init__()
-        self.dense_1 = Dense(200, activation='relu')
-        self.dense_2 = Dense(20, activation='relu')
+        self.dense_1 = Dense(400, activation='relu')
+        self.dense_2 = Dense(100, activation='relu')
+        self.dense_3 = Dense(10, activation='relu')
         self.classifier = Dense(1, activation='sigmoid')
 
     def call(self, x):
         x = self.dense_1(x)
         x = self.dense_2(x)
+        x = self.dense_3(x)
         return self.classifier(x)
 
 
@@ -138,10 +140,10 @@ runtime = time.time() - start
 print('Training time:', runtime, 'seconds')
 print(history.history['val_auc'])
 probs = mlp.predict(X_test.astype(np.float32))
-np.save("pred_adamw.npy", probs)
+np.save("pred_adamw_big.npy", probs)
 result = PlotROCCurve(probs,y_test, ci=confidence_interval, random_seed=random_seed)
-mlp.save('hospitalization_triage_mlp')
+mlp.save('hospitalization_triage_mlp_big')
 
-pred = np.load('pred_adamw.npy')
+pred = np.load('pred_adamw_big.npy')
 print(pred.shape)
 result = PlotROCCurve(pred,y_test, ci=confidence_interval, random_seed=random_seed)
